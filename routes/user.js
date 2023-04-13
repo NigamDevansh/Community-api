@@ -8,6 +8,9 @@ const router = Router();
 
 router.post(
 	"/signup",
+	body("name").isLength({
+		min: 2,
+	}),
 	body("email")
 		.isEmail()
 		.custom((value) => {
@@ -15,24 +18,40 @@ router.post(
 				email: value,
 			}).then((user) => {
 				if (user.length > 0) {
-					throw "email is taken!";
+					throw "This email is taken!";
 				}
 			});
 		}),
-	body("password").isLength({
-		min: 6,
-	}),
-	body("name").isLength({
-		min: 2,
-	}),
+	body("password")
+		.isStrongPassword({
+			minLength: 6,
+			minLowercase: 1,
+			minUppercase: 1,
+			minNumbers: 1,
+		})
+		.withMessage(
+			"Password must be greater than 8 and contain at least one uppercase letter, one lowercase letter, and one number",
+		),
 	async (req, res) => {
 		// console.log(req.body);
 		const errors = validationResult(req);
 
 		if (!errors.isEmpty()) {
+			let errorMessage = "";
+			if (errors.array()[0].msg.includes("Invalid")) {
+				errorMessage = "Name must be more than 2 characters";
+			} else if (errors.array()[0].msg.includes("email")) {
+				errorMessage = errors.array()[0].msg;
+			} else if (errors.array()[0].msg.includes("Password")) {
+				errorMessage = errors.array()[0].msg;
+			} else {
+				errorMessage = errors.array();
+			}
 			return res.status(400).json({
 				success: false,
-				errors: `${errors.array()[0].value} is already taken`,
+				errors: errorMessage,
+				// errors: `${errors.array()[0].value} is already taken`,
+				// errors: errors.array(),
 			});
 		}
 
@@ -52,10 +71,10 @@ router.post(
 		};
 
 		const token = createTokenForUser(userDetails);
-		console.log(user.createdAt);
 		// const created
 
-		res.status(200)
+		return res
+			.status(200)
 			.cookie("token", token)
 			.json({
 				status: true,
@@ -75,6 +94,7 @@ router.post("/signin", async (req, res) => {
 
 		const payload = validateToken(token);
 		delete payload.iat;
+		delete payload._id;
 		// console.log("Token", token);
 		return res
 			.status(200)
@@ -91,27 +111,19 @@ router.post("/signin", async (req, res) => {
 });
 
 router.get("/me", (req, res) => {
-	console.log(req.cookies);
-	const tokenCookieValue = req.cookies["token"];
-	if (!tokenCookieValue) {
+	if (req.user === undefined) {
 		return res.status(400).json({
-			error: "Please signin",
+			error: "Please signin!",
 		});
 	}
-
-	try {
-		const payload = validateToken(tokenCookieValue);
-		req.user = payload;
-		delete payload.iat;
-		return res.status(200).json({
-			data: { ...payload },
-		});
-	} catch (error) {
-		return res.status(400).json({
-			success: false,
-			errors: error.message,
-		});
-	}
+	const payload = req.user;
+	delete payload.iat;
+	delete payload._id;
+	return res.status(200).json({
+		data: {
+			...payload,
+		},
+	});
 });
 
 module.exports = router;
