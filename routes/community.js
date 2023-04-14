@@ -2,6 +2,7 @@ const { Router } = require("express");
 const slugify = require("slugify");
 const { Snowflake } = require("@theinternetfolks/snowflake");
 const { body, validationResult } = require("express-validator");
+const User = require("../Models/userSchema");
 const Member = require("../Models/membersSchema");
 const Community = require("../Models/communitySchema");
 const Role = require("../Models/roleSchema");
@@ -156,6 +157,14 @@ router.get("/me/owner", async (req, res) => {
 	});
 });
 
+async function objsPush(objs, allComm) {
+	allComm.forEach((item) => {
+		// console.log(item);
+		objs.push(item);
+	});
+	return objs;
+}
+
 router.get("/me/member", async (req, res) => {
 	if (req.user === undefined) {
 		return res.status(404).json({
@@ -164,19 +173,22 @@ router.get("/me/member", async (req, res) => {
 	}
 	const { id } = req.user;
 	const memberOf = await Member.find({ user: id });
+	// console.log(memberOf);
 	const memberOfID = [];
 	memberOf.forEach((element) => {
 		memberOfID.push(element.community);
 	});
-	let objs = [];
 	let retObjs = [];
 	const setOfmemberOfID = new Set(memberOfID);
-	setOfmemberOfID.forEach(async (ele) => {
-		const allComm = await Community.find({ id: ele }).populate({
-			path: "owner",
-			select: "id name",
-		});
-		objs.push(allComm);
+	let arr = [];
+	setOfmemberOfID.forEach((element) => {
+		arrrr.push(element);
+	});
+	const objs = await Community.find({
+		$or: [{ id: { $in: arr } }],
+	}).populate({
+		path: "owner",
+		select: "id name",
 	});
 	for (const key in objs) {
 		let obj = objs[key];
@@ -201,7 +213,7 @@ router.get("/me/member", async (req, res) => {
 	let end = start + items;
 	let returnArray = [];
 	retObjs.forEach((element, index) => {
-		if (index > start && index <= end) {
+		if (index >= start && index <= end) {
 			returnArray.push(element);
 		}
 	});
@@ -221,14 +233,14 @@ router.get("/me/member", async (req, res) => {
 
 router.get("/:id/members", async (req, res) => {
 	const id = req.params.id;
-	const commDetails = await Community.find({ name: id });
+	const commDetails = await Community.findOne({ name: id });
 	const commID = commDetails.id;
 	const allUsersIdOfCommId = await Member.find({ community: commID });
 	let retObjs = [];
 	for (const key in allUsersIdOfCommId) {
 		let obj = allUsersIdOfCommId[key];
-		const a = await User.find({ id: obj.user });
-		const b = await Role.find({ id: obj.role });
+		const a = await User.findOne({ id: obj.user });
+		const b = await Role.findOne({ name: obj.role });
 		const c = {
 			id: Snowflake.generate(),
 			community: obj.community,
@@ -238,17 +250,35 @@ router.get("/:id/members", async (req, res) => {
 			},
 			role: {
 				id: b.id,
-				role: b.role,
+				role: b.name,
 			},
 			created_at: a.createdAt,
 		};
 		retObjs.push(c);
 	}
-	retObjs.forEach((ele) => {
-		console.log(ele);
+	let total = retObjs.length;
+	let items = 4;
+	let pages = parseInt(total / items);
+	let page = 1;
+	let start = (page - 1) * items;
+	let end = start + items;
+	let returnArray = [];
+	retObjs.forEach((element, index) => {
+		if (index >= start && index <= end) {
+			returnArray.push(element);
+		}
 	});
-	return res.json({
-		yo: "yoo",
+
+	return res.status(200).json({
+		status: true,
+		content: {
+			meta: {
+				total,
+				pages,
+				page,
+			},
+			data: returnArray,
+		},
 	});
 });
 module.exports = router;
