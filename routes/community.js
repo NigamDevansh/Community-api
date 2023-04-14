@@ -186,7 +186,7 @@ router.get("/me/member", async (req, res) => {
 	const setOfmemberOfID = new Set(memberOfID);
 	let arr = [];
 	setOfmemberOfID.forEach((element) => {
-		arrrr.push(element);
+		arr.push(element);
 	});
 	const objs = await Community.find({
 		$or: [{ id: { $in: arr } }],

@@ -60,7 +60,6 @@ router.delete("/:id", async (req, res) => {
 		commAdminOrModID.push(element.community);
 	});
 	const setofCommAdminOrModID = new Set(commAdminOrModID);
-	console.log(setofCommAdminOrModID);
 	const paramsId = req.params.id;
 	setofCommAdminOrModID.forEach(async (ele) => {
 		await Member.deleteMany({
