@@ -53,11 +53,15 @@ router.post(
 			updated_at: ret._doc.updatedAt,
 		};
 		return res.status(200).json({
-			data: { ...obj },
+			status: true,
+			content: {
+				data: obj,
+			},
 		});
 	},
 );
 
+//
 router.get("/", async (req, res) => {
 	let retObjs = [];
 	const objs = await Community.find({}).populate({

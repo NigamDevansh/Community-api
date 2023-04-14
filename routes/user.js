@@ -50,8 +50,6 @@ router.post(
 			return res.status(400).json({
 				success: false,
 				errors: errorMessage,
-				// errors: `${errors.array()[0].value} is already taken`,
-				// errors: errors.array(),
 			});
 		}
 
@@ -95,12 +93,14 @@ router.post("/signin", async (req, res) => {
 		const payload = validateToken(token);
 		delete payload.iat;
 		delete payload._id;
-		// console.log("Token", token);
 		return res
 			.status(200)
 			.cookie("token", token)
 			.json({
-				data: { ...payload },
+				status: true,
+				content: {
+					data: { ...payload },
+				},
 			});
 	} catch (error) {
 		return res.status(400).json({
@@ -120,8 +120,9 @@ router.get("/me", (req, res) => {
 	delete payload.iat;
 	delete payload._id;
 	return res.status(200).json({
-		data: {
-			...payload,
+		status: true,
+		content: {
+			data: { ...payload },
 		},
 	});
 });

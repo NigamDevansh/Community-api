@@ -29,11 +29,14 @@ router.post(
 			name,
 		});
 		return res.status(200).json({
-			data: {
-				id: role.id,
-				name: role.name,
-				created_at: role.createdAt,
-				updated_at: role.updatedAt,
+			status: true,
+			content: {
+				data: {
+					id: role.id,
+					name: role.name,
+					created_at: role.createdAt,
+					updated_at: role.updatedAt,
+				},
 			},
 		});
 	},
@@ -64,7 +67,7 @@ router.get("/", async (req, res) => {
 	let end = start + items;
 	let returnArray = [];
 	retObjs.forEach((element, index) => {
-		if (index > start && index <= end) {
+		if (index >= start && index <= end) {
 			returnArray.push(element);
 		}
 	});

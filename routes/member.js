@@ -36,7 +36,10 @@ router.post("/", async (req, res) => {
 		created_at: mem.createdAt,
 	};
 	return res.json({
-		data: member,
+		status: true,
+		content: {
+			data: member,
+		},
 	});
 });
 
