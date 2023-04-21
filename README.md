@@ -1,13 +1,12 @@
 
-# The Internet Folks API:
+# Community API:
  
-Live on : https://the-internet-folks-assignment-production.up.railway.app/
 ### Run Locally
 
 Clone the project
 
 ```bash
-  git clone https://github.com/NigamDevansh/The-Internet-folks-Assignment
+  git clone https://github.com/NigamDevansh/Community-api
 ```
 
 Go to the project directory
